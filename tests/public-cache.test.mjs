@@ -63,3 +63,31 @@ test('solo cambios aceptados en anuncios invalidan la lista del mercadillo', asy
   assert.equal((await fresh.json())[0].id, 'nuevo');
  }
 });
+
+const photo=()=>new Response(new Uint8Array([1,2,3]),{headers:{'Content-Type':'image/jpeg','Content-Length':'3','Cache-Control':'no-store'}});
+test('las fotos guardadas en D1 se sirven desde la caché para visitantes anónimos',async()=>{
+ const cache=fixture(),src=origin+'/api/gallery/photos/foto-1';let reads=0;const next=async()=>{reads++;return photo();};
+ const first=await withPublicCache(new Request(src),cache,next),second=await withPublicCache(new Request(src),cache,next);
+ assert.equal(reads,1);assert.equal(first.headers.get('Cache-Control'),'public, max-age=86400');assert.equal(second.headers.get('Cache-Control'),'public, max-age=86400');
+ assert.deepEqual([...new Uint8Array(await second.arrayBuffer())],[1,2,3]);assert.equal(second.headers.get('X-Club-Cache-Captured-At'),null);
+});
+test('las fotos del garaje caducan pronto para respetar moderación y cambios de perfil',async()=>{
+ for(const path of ['/api/garage/photos/uno','/api/garage/profiles/socio/photo']){const r=await withPublicCache(new Request(origin+path),fixture(),async()=>photo());assert.equal(r.headers.get('Cache-Control'),'public, max-age=600');}
+});
+test('administradores, mediciones y otras rutas no comparten copias de fotos',async()=>{
+ const cache=fixture();let reads=0;const next=async()=>{reads++;return photo();};
+ for(let i=0;i<2;i++){const r=await withPublicCache(new Request(origin+'/api/market/photos/p1',{headers:{cookie:'club_session=admin'}}),cache,next);assert.equal(r.headers.get('Cache-Control'),'no-store');}
+ for(let i=0;i<2;i++)await withPublicCache(new Request(origin+'/api/garage/photos/uno?medir=1'),cache,next);
+ assert.equal(reads,4);assert.equal(cache.values.size,0);
+ const missing=await withPublicCache(new Request(origin+'/api/market/photos/oculta'),cache,async()=>new Response('{}',{status:404,headers:{'Cache-Control':'no-store'}}));
+ assert.equal(missing.headers.get('Cache-Control'),'no-store');assert.equal(cache.values.size,0);
+});
+test('los vídeos por rangos los guarda el navegador pero no la caché compartida',async()=>{
+ const cache=fixture();const r=await withPublicCache(new Request(origin+'/api/cms/media/v1',{headers:{range:'bytes=0-1'}}),cache,async()=>new Response(new Uint8Array([1,2]),{status:206,headers:{'Content-Range':'bytes 0-1/9','Cache-Control':'no-store'}}));
+ assert.equal(r.status,206);assert.equal(r.headers.get('Cache-Control'),'public, max-age=86400');assert.equal(cache.values.size,0);
+});
+test('borrar una foto de la galería retira su copia compartida',async()=>{
+ const cache=fixture(),src=origin+'/api/gallery/photos/foto-2';await withPublicCache(new Request(src),cache,async()=>photo());assert.equal(cache.values.has(src),true);
+ await withPublicCache(new Request(src,{method:'DELETE'}),cache,async()=>new Response('{}',{status:403}));assert.equal(cache.values.has(src),true);
+ await withPublicCache(new Request(src,{method:'DELETE'}),cache,async()=>new Response('{"ok":true}'));assert.equal(cache.values.has(src),false);
+});
