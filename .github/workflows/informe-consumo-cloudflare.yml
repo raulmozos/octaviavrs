@@ -1,0 +1,41 @@
+name: Informe de consumo en Cloudflare
+# Solo lectura: consulta la analítica de Cloudflare y genera un informe con gráficas.
+# No publica ni cambia nada en la web. Se lanza a mano desde la pestaña Actions.
+on:
+  workflow_dispatch:
+    inputs:
+      dias:
+        description: 'Cuántos días hacia atrás incluir (máx. 90; la analítica gratuita suele guardar unos 30)'
+        default: '30'
+      fecha_cambio:
+        description: 'Fecha de la optimización (AAAA-MM-DD)'
+        default: '2026-11-24'
+permissions:
+  contents: read
+jobs:
+  informe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github/consumo
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Consultar la analítica y generar el informe
+        env:
+          CLOUDFLARE_ACCOUNT_ID: '71fb53fce0685a83a5b15712414cfc25'
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          DIAS: ${{ inputs.dias }}
+          FECHA_CAMBIO: ${{ inputs.fecha_cambio }}
+          SALIDA: informe-consumo
+        run: node .github/consumo/informe-consumo.mjs
+      - name: Guardar el informe para descargarlo
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: informe-consumo-cloudflare
+          path: informe-consumo
+          if-no-files-found: warn
+          retention-days: 90
