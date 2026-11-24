@@ -1,4 +1,5 @@
 // Rango HTTP explícito para los dos MP4 públicos. Sin D1 ni servicios externos.
+// El navegador guarda el vídeo un día (la URL lleva ?v=) para no repetir peticiones a la Function.
 const movies=new Set(['/assets/cinematic/octavia-cinematica-web.mp4','/assets/cinematic/octavia-cinematica-4k.mp4']);
 export async function onRequest({request,env}){
  const path=new URL(request.url).pathname;
@@ -7,7 +8,7 @@ export async function onRequest({request,env}){
  const headers=new Headers(request.headers);headers.delete('Range');headers.delete('If-Range');headers.set('Accept-Encoding','identity');
  const source=await env.ASSETS.fetch(new Request(request,{headers}));
  if(source.status!==200||!source.headers.get('Content-Type')?.startsWith('video/mp4'))return source;
- const output=new Headers(source.headers);output.set('Accept-Ranges','bytes');output.set('X-Content-Type-Options','nosniff');
+ const output=new Headers(source.headers);output.set('Accept-Ranges','bytes');output.set('X-Content-Type-Options','nosniff');output.set('Cache-Control','public, max-age=86400');
  const range=request.headers.get('Range'),condition=request.headers.get('If-Range');
  if(request.method==='HEAD'||!range||condition&&condition!==source.headers.get('ETag')&&condition!==source.headers.get('Last-Modified'))return new Response(request.method==='HEAD'?null:source.body,{status:200,headers:output});
  const buffer=await source.arrayBuffer(),size=buffer.byteLength,match=/^bytes=(\d*)-(\d*)$/.exec(range);
