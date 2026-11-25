@@ -1,5 +1,5 @@
 import {createSimpleSignupManager} from './event-signups.mjs?v=20261114-socios-eventos';
-import {createEventAttendeeManager} from './event-attendees.mjs?v=20261114-solo-propietario';
+import {createEventAttendeeManager} from './event-attendees.mjs?v=20261125-resto-pagado';
 
 const status=document.querySelector('[data-page-status]');
 const loginPanel=document.querySelector('[data-login-panel]');
