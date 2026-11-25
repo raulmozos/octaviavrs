@@ -140,3 +140,34 @@ header .header-wordmark{display:flex;align-items:center;justify-content:center;g
 @keyframes mobile-smoke-stable{from{transform:translate3d(-15vw,2vh,0) scale(1.05)}to{transform:translate3d(15vw,-2vh,0) scale(1.1)}}
 @keyframes mobile-smoke-stable-reverse{from{transform:translate3d(13vw,2vh,0) scale(1.1)}to{transform:translate3d(-13vw,-2vh,0) scale(1.04)}}
 
+
+/* Densidad de portada compartida por la web y la aplicación instalada. */
+.club-home > .hero {
+  height: auto;
+  min-height: clamp(470px, 68svh, 650px);
+}
+.club-home > .hero .hero-copy {
+  padding-top: clamp(44px, 7vh, 72px);
+  padding-bottom: 76px;
+}
+.club-home > .hero .hero-bottom { bottom: 18px; }
+.club-home > .section:not(#simulador) {
+  padding-block: clamp(30px, 4.5vw, 48px);
+}
+.club-home > .section:not(#simulador) > .section-heading {
+  margin-bottom: clamp(14px, 2vw, 24px);
+}
+.club-home > .intro.section { column-gap: clamp(20px, 6vw, 72px); }
+.club-home .club-news-heading h2 { margin-bottom: 14px; }
+.club-home .club-news-station { gap: 12px; }
+
+@media (max-width: 760px) {
+  .club-home > .hero { min-height: 0; }
+  .club-home > .hero .hero-art { height: clamp(205px, 62vw, 280px); }
+  .club-home > .hero .hero-copy {
+    padding-top: clamp(205px, 60vw, 270px);
+    padding-bottom: 62px;
+  }
+  .club-home > .section:not(#simulador) { padding-block: 24px; }
+  .club-home > .intro.section { row-gap: 16px; }
+}
