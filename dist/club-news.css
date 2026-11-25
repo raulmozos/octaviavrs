@@ -152,10 +152,10 @@
 /* Las fotos adjuntas conservan su proporción, también en formato vertical. */
 .club-news-section .club-news-screen img[data-news-photo="true"] {
   display: block;
-  width: auto;
+  width: 100%;
+  height: 100%;
   max-width: 100%;
-  height: auto;
-  max-height: none;
+  max-height: 100%;
   margin: 0 auto;
   padding: 0;
   background: #08090d;
@@ -185,3 +185,13 @@
 #noticias .club-news-status{grid-area:status}
 #noticias .club-news-station [hidden]{display:none!important}
 @media(max-width:650px){#noticias .club-news-station{grid-template-columns:minmax(0,1fr);grid-template-areas:"admin" "media" "story" "status";padding:14px;gap:12px}#noticias .club-news-screen{aspect-ratio:16/10}#noticias .club-news-controls{gap:6px}#noticias .club-news-controls span{font-size:9px}}
+
+/* Mantiene completa cada foto del carrusel dentro de la pantalla de noticias. */
+#noticias .club-news-screen img[data-news-photo="true"] {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  background: #08090d;
+}
